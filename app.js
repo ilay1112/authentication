@@ -90,22 +90,22 @@ app.get('/auth/google/secrets',
 	});
 
 app.route("/submit")
-	.get(function(req, res) {
-		if (req.isAuthenticated()){
+	.get(function (req, res) {
+		if (req.isAuthenticated()) {
 			res.render("submit");
 		} else {
 			res.redirect("/login");
 		};
 	})
-	.post(function(req, res) {
+	.post(function (req, res) {
 		const submitedSecret = req.body.secret;
 		console.log(req.user.id);
-		User.findById(req.user.id, function(err, foundUser) {
+		User.findById(req.user.id, function (err, foundUser) {
 			if (err) {
 				console.log(err);
 			} else {
 				foundUser.secret = submitedSecret;
-				foundUser.save(function() {
+				foundUser.save(function () {
 					res.redirect("/secrets");
 				});
 			}
@@ -155,11 +155,19 @@ app.route("/login")
 	});
 app.route("/secrets")
 	.get(function (req, res) {
-		if (req.isAuthenticated()) {
-			res.render("secrets");
-		} else {
-			res.redirect("/login");
-		}
+		User.find({
+			secret: {
+				$ne: null
+			}
+		}, function (err, foundUsers) {
+			if (err) {
+				console.log(err);
+			} else {
+				res.render("secrets", {
+					userWithSecrets: foundUsers
+				});
+			}
+		});
 	});
 app.route("/logout")
 	.get(function (req, res) {
@@ -167,8 +175,8 @@ app.route("/logout")
 			if (err) {
 				console.log(err);
 			}
+			res.redirect("/");
 		});
-		res.redirect("/");
 	});
 
 app.listen(3000, function () {
